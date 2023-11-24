@@ -17,7 +17,8 @@ This repo contains the code used in this paper: insert-link-to-paper. error_mess
     + add_error_message_type.py adds an error_message_type column to each row of log file, that says what error message type was used
 
 + parsing_scripts/
-    + count_users_and_errors.py counts the number of students that used each error message type
+    + count_users_and_errors.py counts the number of students that used each error message type, and the number of errors made of each error message type. Sierra used this code to generate table 1 in the paper.
     + demographics_results.py graphs the time to resolve errors for HDI, gender, and programming experience
     + long_term_results.py graphs the long term results for different error message types
     + short_term_results.py graphs the short term results for different error message types
+    + error_message_types.py contains a dictionary of the error message type keys to their full names (for example 'default': 'Standard')
