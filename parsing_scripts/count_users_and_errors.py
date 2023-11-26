@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from error_message_types import official_error_types
+import ast
 
 logs_folder = '../data_files/student_logs/'
 
@@ -15,7 +16,13 @@ def get_error_message_type(df):
 
 # Count the number of errors made of this error message type
 def count_num_errors_made_of_type(df, error_message_type):
-    return df[df['error_message_type'] == error_message_type].shape[0]
+    error_rows_only = df[df['error_message_type'] == error_message_type]
+    count = 0
+    for i, row in error_rows_only.iterrows():
+        raw_errors = ast.literal_eval(row['error'])
+        count += len(raw_errors)
+
+    return count
 
 # Return two dictionaries. One contains counts of users that used each error message type. 
 # The other contains counts of errors made of each error message type.

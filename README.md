@@ -19,6 +19,8 @@ This repo contains the code used in this paper: insert-link-to-paper. error_mess
 + parsing_scripts/
     + count_users_and_errors.py counts the number of students that used each error message type, and the number of errors made of each error message type. Sierra used this code to generate table 1 in the paper.
     + demographics_results.py graphs the time to resolve errors for HDI, gender, and programming experience
+    + clean_error_message.py contains functions for turning raw errors into more generalized errors (removes function and variable names, etc)
     + long_term_results.py graphs the long term results for different error message types
-    + short_term_results.py graphs the short term results for different error message types
+    + parse_short_term_results.py determines the rate that users make the same error in the subsequent run, and the number of runs it takes a user to resolve an error, and writes this information to output files
+    + graph_short_term_results.py graphs the short term results for different error message types
     + error_message_types.py contains a dictionary of the error message type keys to their full names (for example 'default': 'Standard')
