@@ -15,7 +15,7 @@ data_file = '../data_files/sl_and_student_data.csv'
 def graph_hdi_vs_error_message_type(ax):
     # Only include students who only used one error message type
     data_df = pd.read_csv(data_file)
-    df = data_df[(data_df['error_message_type'] != 'multiple') & (data_df['avg_error_run_length'] != 'None') & (data_df['hdi'] != 'None')]
+    df = data_df[(data_df['error_message_type'] != 'other') & (data_df['avg_error_run_length'] != 'None') & (data_df['hdi'] != 'None')]
 
     # Assuming that your DataFrame is df
     bins = [0, 0.54999, 0.69999, 0.79999, 1]
@@ -50,7 +50,7 @@ def graph_hdi_vs_error_message_type(ax):
 def graph_gender_vs_error_message_type(ax):
     # Only include students who only used one error message type
     data_df = pd.read_csv(data_file)
-    df = data_df[(data_df['error_message_type'] != 'multiple') & (data_df['avg_error_run_length'] != 'None')]
+    df = data_df[(data_df['error_message_type'] != 'other') & (data_df['avg_error_run_length'] != 'None')]
 
     genders = ['Male', 'Female', 'Other']
 
@@ -86,7 +86,7 @@ def graph_gender_vs_error_message_type(ax):
 def graph_experience_vs_error_message_type(ax):
     # Only include students who only used one error message type
     data_df = pd.read_csv(data_file)
-    df = data_df[(data_df['error_message_type'] != 'multiple') & (data_df['avg_error_run_length'] != 'None') & (data_df['experience'] != 'None')]
+    df = data_df[(data_df['error_message_type'] != 'other') & (data_df['avg_error_run_length'] != 'None') & (data_df['experience'] != 'None')]
 
     # Multiply all values in 'experience' column by -1 because 
     # -18 is the most experienced and 0 is the least experienced

@@ -51,7 +51,7 @@ def add_error_message_type_to_overall_data():
         if len(error_message_types) == 1:
             sl_and_student_data.at[i, 'error_message_type'] = error_message_types[0]
         else:
-            sl_and_student_data.at[i, 'error_message_type'] = 'multiple'
+            sl_and_student_data.at[i, 'error_message_type'] = 'other'
 
     # Save the dataframe
     sl_and_student_data.to_csv('../data_files/sl_and_student_data.csv', index=False)
