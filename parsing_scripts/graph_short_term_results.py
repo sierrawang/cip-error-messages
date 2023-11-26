@@ -48,7 +48,6 @@ def graph_percent_same_error_per_user(ax, color):
 
     ax.errorbar(x, y, yerr=stderr, color=color, fmt='o', label="Avg. Rate of Repeated Errors")
 
-
 def graph_avg_runs_until_resolved_per_user(ax, color):
     f = open(f'{data_folder}average_runs_until_resolved.json', 'r')
     runs_until_resolved_per_user_results = json.load(f)
@@ -62,46 +61,6 @@ def graph_avg_runs_until_resolved_per_user(ax, color):
         stderr.append(np.std(runs_until_resolved_per_user_results[error_message_type])/np.sqrt(len(runs_until_resolved_per_user_results[error_message_type])))
 
     ax.errorbar(x, y, yerr=stderr, color=color, fmt='o', label="Avg. Runs until Resolved")
-
-
-# Check if the difference in means between two lists is statistically significant
-def independent_t_test(list1, list2):
-    # Convert the lists to NumPy arrays
-    data1 = np.array(list1)
-    data2 = np.array(list2)
-    
-    # Perform the independent samples t-test
-    t_statistic, p_value = stats.ttest_ind(data1, data2)
-    
-    # Check if the difference in means is statistically significant
-    return p_value
-
-def check_statistical_significance_of_percentages():
-    f = open(f'{data_folder}percent_same_subsequent_error.json', 'r')
-    same_subsequent_error_per_user_results = json.load(f)
-
-    print("Checking statistical significance of percent repeat error")
-    for i in range(len(error_message_types)):
-        for j in range(i+1, len(error_message_types)):
-            p_value = independent_t_test(same_subsequent_error_per_user_results[error_message_types[i]], same_subsequent_error_per_user_results[error_message_types[j]])
-            if p_value < 0.05:
-                print("Statistically significant difference between " + error_message_types[i] + " and " + error_message_types[j])
-            else:
-                print("No statistically significant difference between " + error_message_types[i] + " and " + error_message_types[j])
-
-def check_statistical_significance_of_runs_until_resolved():
-    f = open(f'{data_folder}average_runs_until_resolved.json', 'r')
-    runs_until_resolved_per_user_results = json.load(f)
-    
-    print("Checking statistical significance for runs until resolved:")
-    for i in range(len(error_message_types)):
-        for j in range(i+1, len(error_message_types)):
-            p_value = independent_t_test(runs_until_resolved_per_user_results[error_message_types[i]], runs_until_resolved_per_user_results[error_message_types[j]])
-            if p_value < 0.05:
-                print("Statistically significant difference between " + error_message_types[i] + " and " + error_message_types[j])
-            else:
-                print("No statistically significant difference between " + error_message_types[i] + " and " + error_message_types[j])
-
 
 def graph_short_term_results():
     # Initialize the figure
@@ -128,7 +87,4 @@ def graph_short_term_results():
     plt.show()
 
 if __name__ == '__main__':
-    check_statistical_significance_of_percentages()
-    print()
-    check_statistical_significance_of_runs_until_resolved()
     graph_short_term_results()

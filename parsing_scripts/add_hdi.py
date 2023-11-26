@@ -62,4 +62,5 @@ def add_hdi_to_csv():
     # demo_df.to_csv('./cip_data_10-23/section_data_with_hdi.csv', index=False)
     demo_df.to_csv('./clean_folder/data_files/sl_and_student_data.csv', index=False)
 
-add_hdi_to_csv()
+if __name__ == "__main__":
+    add_hdi_to_csv()

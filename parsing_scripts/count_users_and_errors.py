@@ -1,6 +1,7 @@
 import pandas as pd
 import os
-from error_message_types import official_error_types
+from error_message_types import official_error_types, get_raw_errors, valid_error_message_type
+from karel_info import not_karel
 import ast
 
 logs_folder = '../data_files/student_logs/'
@@ -15,12 +16,15 @@ def get_error_message_type(df):
     return result
 
 # Count the number of errors made of this error message type
-def count_num_errors_made_of_type(df, error_message_type):
-    error_rows_only = df[df['error_message_type'] == error_message_type]
+def count_num_errors_made_of_type(df):
     count = 0
-    for i, row in error_rows_only.iterrows():
-        raw_errors = ast.literal_eval(row['error'])
-        count += len(raw_errors)
+    for i, row in df.iterrows():
+        if not_karel(row):
+            raw_errors = get_raw_errors(row)
+            count += len(raw_errors)
+
+            if len(raw_errors) > 0:
+                assert(valid_error_message_type(row))
 
     return count
 
@@ -49,7 +53,7 @@ def get_counts_of_error_message_types(df):
 
         error_message_type = error_message_types[0]
         user_counts[error_message_type] += 1
-        error_counts[error_message_type] += count_num_errors_made_of_type(df, error_message_type)
+        error_counts[error_message_type] += count_num_errors_made_of_type(df)
 
 
     print(f"Number of students with no error message type: {num_no_error_message_type}")

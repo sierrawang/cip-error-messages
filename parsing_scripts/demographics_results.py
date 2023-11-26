@@ -1,6 +1,5 @@
 import pandas as pd
 import ast
-import os
 import re
 import matplotlib.pyplot as plt
 import numpy as np
@@ -11,23 +10,6 @@ from statsmodels.stats.multicomp import pairwise_tukeyhsd
 from matplotlib import rcParams
 rcParams['font.family'] = 'Times New Roman'
 rcParams['font.size'] = '24'
-
-# NOTE - The error_message column are the typed error messages that were shown to the user
-# The error column are the standard error messages output by pyodide
-
-# NOTE - After removing all karel assignments to the best of my ability, there are 56 
-# users that still have the line "from karel.stanfordkarel import *" in their code. 
-# There are 9260 users in total. For now, I will treat these 56 users as normal, 
-# and not remove them from the dataset.
-
-# NOTE - There are 4 users that received error messages that do not have a type. Every single time, the user
-# received the error "object is not iterable (cannot read property Symbol(Symbol.iterator))"
-# I am not confident that the user ever saw this error because the error_message column is empty.
-# I will not perform any special parsing for this case.
-
-# NOTE - For some reason, some of the values in the error column look like weird_error_pattern.
-# I think it is because it's somehow being incorrectly logged as a chunk of the error message.
-# We can still extract the last line of the standard error message from this.
 
 weird_error_pattern = r"^\(Line \d+\) (.+)\x1b$"
 

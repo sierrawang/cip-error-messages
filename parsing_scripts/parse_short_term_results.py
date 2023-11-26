@@ -2,29 +2,12 @@ import os
 import pandas as pd
 import numpy as np
 import json
-from error_message_types import official_error_types
+from error_message_types import get_error_message_type_for_df, get_raw_errors
 from clean_error_message import normalize_error_message
-import ast
+from karel_info import not_karel
 
 logs_folder = '../data_files/student_logs/'
 output_folder = '../data_files/short_term_data/'
-
-karel_assgnids = [2023, "2023", "checkerboard", "diagnostic3", "diagnostic3soln", "fillkarel", "hospital", "housekarel", "jigsaw", "midpoint", "mountain", "warmup", "steeplechase", "stepup", "stonemason", "spreadbeepers", "rhoomba", "randompainter", "outline", "piles", 
-                  "es-karel-midpoint", "es-karel-cone-pile", "es-karel-stripe", "es-karel-collect-newspaper", "es-karel-hospital", "es-karel-stone-mason", "es-karel-mountain", "es-karel-beeper-line", "es-karel-jump-up", "es-karel-hurdle", "es-karel-checkerboard", 
-                  "es-karel-step-up", "es-karel-dog-years", "es-karel-place-2023", "es-karel-mystery", "es-karel-invert-beeper-1d", "es-karel-un", "es-karel-random-painting", "es-karel-outline", "es-karel-fill", "es-karel-to-the-wall", "es-project-karel", "es-karel-place-100",
-                  "es-karel-big-beeper", "karelflag"] # 'movebeeper',
-
-# Get the error message types that this user used
-def get_error_message_type_for_df(df):
-    # Count the number of distinct error message types
-    error_message_types = df['error_message_type'].unique()
-
-    result = []
-    for error_message_type in error_message_types:
-        if error_message_type in official_error_types:
-            result.append(error_message_type)
-
-    return result
 
 # Return a count of the number of times the user got the same error 
 # message in subsequent runs, and the total number of times they got an error
@@ -38,39 +21,29 @@ def get_count_same_subsequent_error(df):
     # Variables to keep track of the previous error
     prev_error = []
     prev_project_id = None
-    prev_error_message_type = None
 
     for i, row in df.iterrows():
         
-        if row['error_message_type'] in official_error_types:
-            # This is a valid error message type
-            # We can look at the actual error message and compare it to the previous error message
-            # We can also update the total error count
-
-            raw_errors = ast.literal_eval(row['error'])
+        if not_karel(row):
+            # So we can update the error counts
+            raw_errors = get_raw_errors(row)
             curr_error = []
             for raw_error in raw_errors:
                 normalized_error = normalize_error_message(raw_error)
                 curr_error.append(normalized_error)   
+                
                 total_error_count += 1
 
                 # Check if this error is the same as the previous error
                 if (row['projectId'] == prev_project_id and normalized_error in prev_error):
-                    assert(prev_error_message_type == row['error_message_type'])
-                    assert(row['projectId'] not in karel_assgnids)
+                    same_error_count += 1
                     
-                    # This is a repeated error!
-                    same_error_count += 1             
-            
             prev_project_id = row['projectId']
-            prev_error_message_type = row['error_message_type']
             prev_error = curr_error
         
         else:
-            # This is not a valid error message type (could be a karel error, or no error)
-            # So we do not count any errors
+            # This row is from a karel assignment, so we do not count any errors
             prev_project_id = row['projectId']
-            prev_error_message_type = row['error_message_type']
             prev_error = []
 
     return same_error_count, total_error_count
@@ -85,14 +58,16 @@ def get_runs_until_resolved(df):
     prev_project_id = None
 
     for i, row in df.iterrows():
-        if row['error_message_type'] in official_error_types and row['projectId'] == prev_project_id:
-            assert(row['projectId'] not in karel_assgnids)
+        if not_karel(row):
+            # If this is a new project, reset prev_error_counts.
+            # We do not save the prev run counts because they were not resolved.
+            # This also has to happen so that we can correctly create curr_error_counts.
+            if row['projectId'] != prev_project_id:
+                prev_error_counts = {}
 
-            # This is a valid error message type, and we are on the same project as the previous row
+            # Construct the current error counts
             curr_error_counts = {}
-            raw_errors = ast.literal_eval(row['error'])
-
-            # Update the current run counts with the previous run counts
+            raw_errors = get_raw_errors(row)
             for raw_error in raw_errors:
                 normalized_error = normalize_error_message(raw_error)
                 curr_error_counts[normalized_error] = prev_error_counts.get(normalized_error, 0) + 1
@@ -103,38 +78,13 @@ def get_runs_until_resolved(df):
                     # Add the error count to the run counts
                     run_counts.append(prev_error_counts[error])
 
-            # Update the loop variables
-            prev_error_counts = curr_error_counts
+            # Update loop variables
             prev_project_id = row['projectId']
-
-        elif row['error_message_type'] in official_error_types and row['projectId'] != prev_project_id:
-            # This is a valid error message type, but we are on a new project
-            curr_error_counts = {}
-            raw_errors = ast.literal_eval(row['error'])
-            
-            # Initialize the current run counts
-            for raw_error in raw_errors:
-                normalized_error = normalize_error_message(raw_error)
-                curr_error_counts[normalized_error] = 1
-
-            # Save the prev run counts
-            for error in prev_error_counts:
-                run_counts.append(prev_error_counts[error])
-
-
-            # Update the loop variables
             prev_error_counts = curr_error_counts
-            prev_project_id = row['projectId']
         else:
-            # This is not a valid error message type (could be a karel error, or no error)
-
-            # Save the prev run counts
-            for error in prev_error_counts:
-                run_counts.append(prev_error_counts[error])
-
-            # Update the loop variables
-            prev_error_counts = {}
+            # Update loop variables
             prev_project_id = row['projectId']
+            prev_error_counts = {}
 
     return run_counts
 
