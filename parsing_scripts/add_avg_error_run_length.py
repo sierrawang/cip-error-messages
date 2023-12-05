@@ -10,6 +10,7 @@ def get_average_run_length(user_id):
     user_df = pd.read_csv(f'../data_files/student_logs/{user_id}.csv', dtype=str, lineterminator='\n')
     run_counts = get_runs_until_resolved(user_df)
     if len(run_counts) == 0:
+        # print(f"User {user_id} has no run counts")
         return None
     return np.mean(run_counts)
 
@@ -24,7 +25,8 @@ def add_avg_error_run_length_to_csv():
     students_only = sl_and_student_data[sl_and_student_data['role'] == 'student']
     for i, row in students_only.iterrows():
         # Add the average error run length to the dataframe
-        sl_and_student_data.at[i, 'avg_error_run_length'] = get_average_run_length(row['user_id'])
+        avg_error_run_length = get_average_run_length(row['user_id'])
+        sl_and_student_data.at[i, 'avg_error_run_length'] = avg_error_run_length
 
     # Save the dataframe
     sl_and_student_data.to_csv('../data_files/sl_and_student_data.csv', index=False)

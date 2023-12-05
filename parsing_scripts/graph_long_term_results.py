@@ -36,8 +36,8 @@ def graph_percent_errors_over_time(ax, x_labels):
     avgs_per_week = get_percent_error_averages_per_week(percent_errors_over_time)
 
     for i, error_message_type in enumerate(percent_errors_over_time):
-        if not error_message_type in ['default','tigerpython','gpt']:
-            continue
+        # if not error_message_type in ['default','tigerpython','gpt']:
+        #     continue
 
         # Map of each week to the rate of errors that week, for this error message type
         results_for_type = percent_errors_over_time[error_message_type]
@@ -57,6 +57,7 @@ def graph_percent_errors_over_time(ax, x_labels):
         ax.errorbar(x_labels, avg_percent_errors_for_type, color=colors[i], fmt='--', alpha=0.3)      
 
     ax.set_ylabel('Deviation from Average Error Rate')  
+    ax.set_ylim(bottom=-0.04, top=0.04)
     ax.set_xlabel('Week')  
 
 def graph_length_error_runs_over_time(ax, x_labels):
@@ -65,8 +66,8 @@ def graph_length_error_runs_over_time(ax, x_labels):
     length_error_runs_over_time = json.load(f)
 
     for i, error_message_type in enumerate(length_error_runs_over_time):
-        if not error_message_type in ['default','tigerpython','gpt']:
-            continue
+        # if not error_message_type in ['default','tigerpython','gpt']:
+        #     continue
 
         # Calculate the average length error runs for this error message type
         avg_length_error_runs_for_type = [np.mean(length_error_runs_over_time[error_message_type][str(week)])

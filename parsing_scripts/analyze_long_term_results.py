@@ -23,6 +23,7 @@ def independent_t_test(list1, list2):
     # Check if the difference in means is statistically significant
     return p_value
 
+# For each week, compare the error rate of each error message type to the overall average error rate
 def check_statistical_significance_of_percents_per_week():
     # Load the data
     f = open(f'{data_folder}percent_errors_over_time.json')
@@ -44,7 +45,8 @@ def check_statistical_significance_of_percents_per_week():
             # print(error_message_type, week, percent_errors_over_time[error_message_type][str(week)])
             # print('no_error_message_types[week]', no_error_message_types[week])
             p_value = independent_t_test(percent_errors_over_time[error_message_type][str(week)], no_error_message_types[week])
-            print('Week ' + str(week) + ': ' + str(p_value))
+            if p_value < 0.05:
+                print('Week ' + str(week) + ': ' + str(p_value))
         print()
 
 def check_statistical_significance_of_length_error_runs_per_week():
@@ -89,7 +91,7 @@ def analyze_runs_until_resolved_using_regression():
     for error_message_type in official_error_types:
         subset = df[df['error_message_type'] == error_message_type]
 
-        model = ols('length_of_run ~ week', data=subset).fit()
+        model = ols('length_of_run ~ C(week)', data=subset).fit()
 
         anova_table = sm.stats.anova_lm(model, typ=2)
 
@@ -103,10 +105,10 @@ def analyze_runs_until_resolved_using_regression():
         print(f"\nPairwise Tukey HSD results for error_message_type: {official_error_types[error_message_type]} are:")
         print(tukey)
 
-
+# For each week, compare the error rate for every combination of error message types
 def analyze_percents_per_week():
     # Load the data
-    f = open('percent_errors_over_time.json')
+    f = open(f'{data_folder}percent_errors_over_time.json')
     percent_errors_over_time = json.load(f)
 
     print("Checking statistical significance for percents per week:")
@@ -126,7 +128,9 @@ def analyze_percents_per_week():
         print()
 
 if __name__ == '__main__':
-    check_statistical_significance_of_percents_per_week()
-    check_statistical_significance_of_length_error_runs_per_week()
+    # Check if there is a difference in rate of error messages between the different types, each week
     analyze_percents_per_week()
+
+    # check_statistical_significance_of_percents_per_week()
+    # check_statistical_significance_of_length_error_runs_per_week()
     analyze_runs_until_resolved_using_regression()

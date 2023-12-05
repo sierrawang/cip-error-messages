@@ -2,186 +2,98 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.formula.api import ols
 from statsmodels.stats.multicomp import pairwise_tukeyhsd
-from error_message_types import official_error_types
 
 error_message_types = ['default', 'explain', 'messageboard', 'tigerpython', 'superhero', 'gpt']
 
+data_folder = '../data_files/'
 
-# Analyze the HDI vs error message type using regressions
-def analyze_hdi_vs_error_message_type_using_regression():
-    df = pd.read_csv('demographics_with_hdi.csv')
+# Check the effect of a parameter (demographic or error message type) 
+# WITHIN each group (error messge type or demographic)
+def analyze_param_within_group(df, test_column, within_column):
+    groups = df[within_column].unique()
 
-    # Assuming your DataFrame is df
-    bins = [0, 0.54999, 0.69999, 0.79999, 1]
-    df['hdi_bin'] = pd.cut(df['hdi'], bins)
+    for group in groups:
+        # Grab the subset of the data for this group
+        subset = df[df[within_column] == group]
 
-    # loop over error_message_type
-    for eroor_message_type in error_message_types:
-        
-        #subset data
-        subset = df[df['error_message_type'] == eroor_message_type]
+        print(f'For {test_column} results, # Users {group}: {len(subset)}')
 
-        #perform anova
-        model = ols('avg_error_run_length ~ C(hdi_bin)', data=subset).fit()
+        # See if there is any significant difference in the average error run length within this group
+        model = ols(f'avg_error_run_length ~ C({test_column})', data=subset).fit()
         anova_table = sm.stats.anova_lm(model, typ=2)
 
-        print(f"\nFor error message type: {official_error_types[eroor_message_type]}, ANOVA results are:")
-        print(anova_table)
-
-def analyze_hdi_vs_error_message_type_using_tukey():
-    df = pd.read_csv('demographics_with_hdi.csv')
-
-    # Assuming your DataFrame is df
-    bins = [0, 0.54999, 0.69999, 0.79999, 1]
-    df['hdi_bin'] = pd.cut(df['hdi'], bins)
-
-    # Remove rows without an error_message_type
-    df = df[df['error_message_type'].notna()]
-
-    # loop over hdi bins
-    for hdi_bin in df['hdi_bin'].unique():        
-        # subset data
-        subset = df[df['hdi_bin'] == hdi_bin]
-
-        # perform anova
-        model = ols('avg_error_run_length ~ C(error_message_type)', data=subset).fit()
-        anova_table = sm.stats.anova_lm(model, typ=2)
-
-        print(f"\nFor hdi bin: {hdi_bin}, ANOVA results are:")
+        # The PR(>F) value is the p-value, and says whether we can reject the null hypothesis that the means are equal
+        # or in other words, that the error message type does not affect the average error run length
+        print(f"\nFor {group}, ANOVA results are:")
         print(anova_table)
         
         # perform pairwise comparison
         tukey = pairwise_tukeyhsd(endog=subset['avg_error_run_length'],
-                                  groups=subset['error_message_type'],
-                                  alpha=0.05)
-        print(f"\nPairwise Tukey HSD results for hdi bin: {hdi_bin} are:")
-        print(tukey)
-
-def analyze_gender_vs_error_message_type_regression():
-    df = pd.read_csv('demographics_with_error_data.csv')
-
-    # loop over error_message_type
-    for eroor_message_type in error_message_types:
-        
-        #subset data
-        subset = df[df['error_message_type'] == eroor_message_type]
-
-        #perform anova
-        model = ols('avg_error_run_length ~ C(gender)', data=subset).fit()
-        anova_table = sm.stats.anova_lm(model, typ=2)
-
-        print(f"\nFor error message type: {official_error_types[eroor_message_type]}, ANOVA results are:")
-        print(anova_table)
-
-def analyze_gender_vs_error_message_type_tukey():
-    df = pd.read_csv('demographics_with_error_data.csv')
-
-    genders = ['male', 'female', 'non-binary', 'other', 'na']
-
-    df = df[df['error_message_type'].notna()]
-
-    # Print number of people in each gender in dataset
-    total = 0
-    for gender in genders:
-        d = df[df['gender'] == gender]
-        print(gender, len(d))
-        total += len(d)
-
-    print(total)
-
-
-    # for gender in genders:
-    subset = df[(df['gender'] == 'non-binary') | (df['gender'] == 'non-other') | (df['gender'] == 'na')]
-
-    #perform anova
-    model = ols('avg_error_run_length ~ C(error_message_type)', data=subset).fit()
-    anova_table = sm.stats.anova_lm(model, typ=2)
-
-    print(f"\nFor hdi bin: Other, ANOVA results are:")
-    print(anova_table)
-    
-    # perform pairwise comparison
-    tukey = pairwise_tukeyhsd(endog=subset['avg_error_run_length'],
-                                groups=subset['error_message_type'],
-                                alpha=0.05)
-    print(f"\nPairwise Tukey HSD results for gender: Other are:")
-    print(tukey)
-
-def analyze_experience_vs_error_message_type_using_regression():
-    df = pd.read_csv('demographics_with_error_data.csv')
-
-    # Multiply all values in 'experience' column by -1 because 
-    # -18 is the most experienced and 0 is the least experienced
-    df['experience'] = df['experience'] * -1
-
-    # Assuming your 'experience' is a continuous variable, we will create buckets using pandas "cut"
-    df["experience_bucket"] = pd.cut(df['experience'], bins=5)
-
-    grouped_df = df.groupby(['error_message_type', 'experience_bucket'])
-    print(grouped_df.describe())
-    bin_means = grouped_df['avg_error_run_length'].mean()
-    print(bin_means)
-
-    # loop over error_message_type
-    for eroor_message_type in error_message_types:
-        
-        #subset data
-        subset = df[df['error_message_type'] == eroor_message_type]
-
-        #perform anova
-        model = ols('avg_error_run_length ~ C(experience_bucket)', data=subset).fit()
-        anova_table = sm.stats.anova_lm(model, typ=2)
-
-        print(f"\nFor error message type: {official_error_types[eroor_message_type]}, ANOVA results are:")
-        print(anova_table)
-
-def analyze_experience_vs_error_message_type_using_tukey():
-    df = pd.read_csv('demographics_with_error_data.csv')
-
-    # Multiply all values in 'experience' column by -1 because 
-    # -18 is the most experienced and 0 is the least experienced
-    df['experience'] = df['experience'] * -1
-
-    # Assuming your 'experience' is a continuous variable, we will create buckets using pandas "cut"
-    df["experience_bucket"] = pd.cut(df['experience'], bins=5)
-
-    # Remove rows without an error_message_type
-    df = df[df['error_message_type'].notna()]
-    
-    # experience_buckets = df['experience_bucket'].unique()
-
-    # for experience_bucket in experience_buckets: 
-    for error_message_type in error_message_types:       
-        # subset data
-        # subset = df[df['experience_bucket'] == experience_bucket]
-        subset = df[df['error_message_type'] == error_message_type]
-
-        # perform anova
-        # model = ols('avg_error_run_length ~ C(error_message_type)', data=subset).fit()
-        model = ols('avg_error_run_length ~ C(experience_bucket)', data=subset).fit()
-        anova_table = sm.stats.anova_lm(model, typ=2)
-
-        # print(f"\nFor experience_bucket: {experience_bucket}, ANOVA results are:")
-        print(f"\nFor error_message_type: {official_error_types[error_message_type]}, ANOVA results are:")
-        print(anova_table)
-        
-        # perform pairwise comparison
-        # tukey = pairwise_tukeyhsd(endog=subset['avg_error_run_length'],
-        #                           groups=subset['error_message_type'],
-        #                           alpha=0.05)
-        tukey = pairwise_tukeyhsd(endog=subset['avg_error_run_length'],
-                                    groups=subset['experience_bucket'],
+                                    groups=subset[test_column],
                                     alpha=0.05)
-        # print(f"\nPairwise Tukey HSD results for experience_bucket: {experience_bucket} are:")
-        print(f"\nPairwise Tukey HSD results for error_message_type: {official_error_types[error_message_type]} are:")
+        print(f"\nPairwise Tukey HSD results for {group} are:")
         print(tukey)
+
+
+def check_effect_of_hdi():
+    df = pd.read_csv(f'{data_folder}sl_and_student_data.csv')
+    df = df[df['error_message_type'].isin(error_message_types)]
+    df = df.dropna(subset=['avg_error_run_length'])
+    df = df.dropna(subset=['hdi'])
+
+    # Assuming your DataFrame is df
+    bins = [0, 0.54999, 0.69999, 0.79999, 1]
+    df['hdi_bin'] = pd.cut(df['hdi'], bins)
+
+    print("Checking effect of HDI on average error run length, within each error message type")
+    analyze_param_within_group(df, 'hdi_bin', 'error_message_type')
+
+    # print("Checking effect of error message type on average error run length, within each HDI group")
+    # analyze_param_within_group(df, 'error_message_type', 'hdi_bin')
+
+def check_effect_of_gender():
+    df = pd.read_csv(f'{data_folder}sl_and_student_data.csv')
+    df = df[df['error_message_type'].isin(error_message_types)]
+    print(len(df))
+    # Print number of students in each gender
+    f = len(df[df['gender'] == 'female'])
+    m = len(df[df['gender'] == 'male'])
+    o = len(df[df['gender'] == 'other'])
+
+    print(f'{m} students identify as male, {f} students identify as female, and {o} students do not identify as either')
+
+    df = df.dropna(subset=['avg_error_run_length'])
+
+    print("Checking effect of gender on average error run length, within each error message type")
+    analyze_param_within_group(df, 'gender', 'error_message_type')
+
+    # print("Checking effect of error message type on average error run length, within each gender")
+    # analyze_param_within_group(df, 'error_message_type', 'gender')
+
+def check_effect_of_experience():
+    df = pd.read_csv(f'{data_folder}sl_and_student_data.csv')
+    df = df[df['error_message_type'].isin(error_message_types)]
+    df = df.dropna(subset=['avg_error_run_length'])
+    df = df.dropna(subset=['experience'])
+
+    # Multiply all values in 'experience' column by -1 because 
+    # -18 is the most experienced and 0 is the least experienced
+    df['experience'] = df['experience'] * -1
+
+    # Assuming your 'experience' is a continuous variable, we will create buckets using pandas "cut"
+    df["experience_bucket"] = pd.cut(df['experience'], bins=5)
+
+    # print("Checking effect of experience on average error run length, within each error message type")
+    # analyze_param_within_group(df, 'experience_bucket', 'error_message_type')
+
+    print("Checking effect of error message type on average error run length, within each experience group")
+    analyze_param_within_group(df, 'error_message_type', 'experience_bucket')
 
 if __name__ == '__main__':
-    analyze_hdi_vs_error_message_type_using_regression()
-    analyze_hdi_vs_error_message_type_using_tukey()
-    
-    analyze_gender_vs_error_message_type_regression()
-    analyze_gender_vs_error_message_type_tukey()
-    
-    analyze_experience_vs_error_message_type_using_regression()
-    analyze_experience_vs_error_message_type_using_tukey()
+    # Look at whether gender, hdi, and experience of a user affects the average error run length, 
+    # WITHIN each error message type. Also, look WITHIN each group (across each error message type), 
+    # to see if the error message type affects the average error run length.
+
+    check_effect_of_hdi()
+    check_effect_of_gender()
+    # check_effect_of_experience()

@@ -29,6 +29,7 @@ def get_count_same_subsequent_error(df):
             raw_errors = get_raw_errors(row)
             curr_error = []
             for raw_error in raw_errors:
+                assert(row['error_message_type'] in ['default', 'gpt', 'superhero', 'messageboard', 'explain', 'tigerpython', None])
                 normalized_error = normalize_error_message(raw_error)
                 curr_error.append(normalized_error)   
                 
@@ -69,6 +70,8 @@ def get_runs_until_resolved(df):
             curr_error_counts = {}
             raw_errors = get_raw_errors(row)
             for raw_error in raw_errors:
+                assert(row['error_message_type'] in ['default', 'gpt', 'superhero', 'messageboard', 'explain', 'tigerpython'])
+
                 normalized_error = normalize_error_message(raw_error)
                 curr_error_counts[normalized_error] = prev_error_counts.get(normalized_error, 0) + 1
 

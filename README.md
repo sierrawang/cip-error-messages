@@ -1,7 +1,9 @@
 # cip-error-messages
 This repo contains the code used in this paper: insert-link-to-paper. error_message_code contains the code used to generate the different error message types. All other folders contain code used in the data analysis. Note that the data for this project lives in the Code in Place 3 firestore, and was not published to github to maintain privacy of the students.
 
-+ error_message_code/ contains the code used to generate the different error message types. These files were copied directly from the Code in Place React web application code.
++ error_message_code/ contains the code used to generate the different error message types. 
+    + frontend/ has the files were copied directly from the Code in Place React web application code.
+    + backend/ has the files directly copied from the firebase repo for creating Forum based error messages.
 
 + data_files/ contains all of the data files for this project. Note that Sierra did not push most of them for privacy. Contact Sierra if you want access to these files.
     + sl_and_student_data.csv contains the age, gender, city, country, occupation, section_id, country's HDI, longitude, latitude for each student and section leader. Sierra downloaded each user's role (sl or student), gender, age, city, country, occupation, section id from the users/ collection in Code in Place firestore in 2023. She specifically downloaded all users who had section data, and a role that was either ‘sl’ or ‘student’. She performed three manual edits of this data - (1) removed Brahm who was listed as a student, (2) added user YVrXNIB6vTR1GbdNzExVlgYo2D72 as an sl, because they are listed as a ta but also lead a section, and (3) removed Chris Piech Test who was listed as a student. The HDI, latitude, and longitude columns were added programmatically based on each user's location.

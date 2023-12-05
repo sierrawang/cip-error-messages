@@ -14,43 +14,53 @@ data_file = '../data_files/sl_and_student_data.csv'
 
 def graph_hdi_vs_error_message_type(ax):
     # Only include students who only used one error message type
-    data_df = pd.read_csv(data_file)
-    df = data_df[(data_df['error_message_type'] != 'other') & (data_df['avg_error_run_length'] != 'None') & (data_df['hdi'] != 'None')]
-
-    # Assuming that your DataFrame is df
-    bins = [0, 0.54999, 0.69999, 0.79999, 1]
-    df['hdi_bin'] = pd.cut(df['hdi'], bins)
-
-    grouped_df = df.groupby(['error_message_type', 'hdi_bin'])
-
-    bin_means = grouped_df['avg_error_run_length'].mean()
-    bin_errors = grouped_df['avg_error_run_length'].sem()
-
-    labels = ['Low', 'Medium', 'High', 'Very High']
+    df = pd.read_csv(data_file)
+    df = df[df['error_message_type'].isin(error_message_types)]
+    df = df.dropna(subset=['avg_error_run_length'])
+    
+    # Drop people who we do not have their HDI
+    df = df.dropna(subset=['hdi'])
 
     for i, error_message_type in enumerate(error_message_types):
-        ax.errorbar(labels, 
-                    bin_means[error_message_type], 
-                    yerr=bin_errors[error_message_type], 
-                    color=colors[i], 
-                    fmt='--', 
-                    alpha=0.3)
-        ax.errorbar(labels, 
-                    bin_means[error_message_type], 
-                    yerr=bin_errors[error_message_type], 
-                    color=colors[i], 
-                    fmt='o', 
-                    label=official_error_types[error_message_type])
+        subset = df[df['error_message_type'] == error_message_type]
 
-    
+        results = { 'Low': [], 'Medium': [], 'High': [], 'Very High': [] }
+
+        for index,row in subset.iterrows():
+            if row['hdi'] < 0.55:
+                results['Low'].append(row['avg_error_run_length'])
+            elif row['hdi'] < 0.7:
+                results['Medium'].append(row['avg_error_run_length'])
+            elif row['hdi'] < 0.8:
+                results['High'].append(row['avg_error_run_length'])
+            else:
+                assert(row['hdi'] >= 0.8 and row['hdi'] <= 1)
+                results['Very High'].append(row['avg_error_run_length'])
+
+        x = []
+        y = []
+        stderr = []
+        count = 0
+        for key in results:
+            count += len(results[key])
+            x.append(key)
+            y.append(np.mean(results[key]))
+            stderr.append(np.std(results[key])/np.sqrt(len(results[key])))
+
+        # print(f'For HDI results, # Users {error_message_type}:', count)
+
+        ax.errorbar(x, y, yerr=stderr, color=colors[i], fmt='--', alpha=0.3)
+        ax.errorbar(x, y, yerr=stderr, color=colors[i], fmt='o', label=official_error_types[error_message_type])
+
     ax.set_xlabel('Human Development Index (HDI)', labelpad=20)
     ax.set_ylabel('Time to Resolve Errors (# of Runs)', labelpad=20)
-    ax.set_ylim(bottom=1, top=3.5)
+    ax.set_ylim(bottom=1, top=3)
 
 def graph_gender_vs_error_message_type(ax):
     # Only include students who only used one error message type
-    data_df = pd.read_csv(data_file)
-    df = data_df[(data_df['error_message_type'] != 'other') & (data_df['avg_error_run_length'] != 'None')]
+    df = pd.read_csv(data_file)
+    df = df[df['error_message_type'].isin(error_message_types)]
+    df = df.dropna(subset=['avg_error_run_length'])
 
     genders = ['Male', 'Female', 'Other']
 
@@ -63,7 +73,7 @@ def graph_gender_vs_error_message_type(ax):
         averages = []
         errors = []
 
-        male_results = df_for_type[df_for_type['gender'] == 'male']['avg_error_run_length']
+        male_results = df_for_type[df_for_type['gender'] == 'male']['avg_error_run_length']        
         averages.append(np.mean(male_results))
         errors.append(np.std(male_results)/np.sqrt(len(male_results)))
 
@@ -75,18 +85,22 @@ def graph_gender_vs_error_message_type(ax):
         averages.append(np.mean(other_results))
         errors.append(np.std(other_results)/np.sqrt(len(other_results)))
 
+        # print(f'For gender results, # Users in {error_message_type}', len(male_results) + len(female_results) + len(other_results))
+
         ax.errorbar(genders, averages, color=colors[i], fmt='--', alpha=0.3)
         ax.errorbar(genders, averages, yerr=errors, color=colors[i], fmt='o')
 
     # Set the labels for x and y axis
     ax.set_xlabel('Gender', labelpad=20)
     # ax.set_ylabel('Number of Runs', fontsize=16)
-    ax.set_ylim(bottom=1, top=3.5)
+    ax.set_ylim(bottom=1, top=3)
 
 def graph_experience_vs_error_message_type(ax):
     # Only include students who only used one error message type
-    data_df = pd.read_csv(data_file)
-    df = data_df[(data_df['error_message_type'] != 'other') & (data_df['avg_error_run_length'] != 'None') & (data_df['experience'] != 'None')]
+    df = pd.read_csv(data_file)
+    df = df[df['error_message_type'].isin(error_message_types)]
+    df = df.dropna(subset=['avg_error_run_length'])
+    df = df.dropna(subset=['experience'])
 
     # Multiply all values in 'experience' column by -1 because 
     # -18 is the most experienced and 0 is the least experienced
@@ -100,7 +114,7 @@ def graph_experience_vs_error_message_type(ax):
     grouped_df = df.groupby(['error_message_type', 'experience_bucket'])
 
     # print the description of the grouped DataFrame
-    print(grouped_df.describe())
+    # print(grouped_df.describe())
 
     bin_means = grouped_df['avg_error_run_length'].mean()
     bin_errors = grouped_df['avg_error_run_length'].sem()
@@ -119,7 +133,7 @@ def graph_experience_vs_error_message_type(ax):
                     fmt='o')
 
     ax.set_xlabel('Programming Experience', labelpad=20)
-    ax.set_ylim(bottom=1, top=3.5)
+    ax.set_ylim(bottom=1, top=3)
 
 def graph_demo_results_side_by_side():
     fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(20, 5))

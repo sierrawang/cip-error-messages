@@ -93,6 +93,7 @@ def length_error_runs_over_time_for_user(df):
             curr_error_counts_track_week = {}
             raw_errors = get_raw_errors(row)
             for raw_error in raw_errors:
+                assert(row['error_message_type'] in ['default', 'gpt', 'superhero', 'messageboard', 'explain', 'tigerpython'])
                 normalized_error = normalize_error_message(raw_error)
                 curr_error_counts[normalized_error] = prev_error_counts.get(normalized_error, 0) + 1
                 curr_error_counts_track_week[normalized_error] = prev_error_counts_track_week.get(
